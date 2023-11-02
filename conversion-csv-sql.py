@@ -4,8 +4,6 @@ with open("data.csv", "r") as archivo, open("bdatos.sql", "w") as archivo_sql:
 
     archivo_sql.write("BEGIN;\n\n")
     archivo_sql.write("SET client_encoding = 'LATIN1';\n\n")
-
-    
     
     lector = reader(archivo)
 
@@ -44,8 +42,3 @@ with open("data.csv", "r") as archivo, open("bdatos.sql", "w") as archivo_sql:
         archivo_sql.write("\n"+ linea[0].replace(";", "\t"))
     archivo_sql.write("\n\.\n")
     archivo_sql.write("COMMIT;")
-
-
-        
-
-
