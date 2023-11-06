@@ -39,30 +39,40 @@ print(scoring_method.score(estimated_modelh))
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 from pgmpy.models import BayesianNetwork
-#modelo = BayesianNetwork([('daytime/evening attendance', 'displaced'), ('daytime/evening attendance', 'scholarship holder'), ('daytime/evening attendance', 'inflation rate'), ('tuition fees up to date', 'displaced'), ('curricular units 1st sem (evaluations)', 'curricular units 1st sem (grade)'), ('curricular units 1st sem (evaluations)', 'target'), ('curricular units 1st sem (evaluations)', 'inflation rate'), ('curricular units 1st sem (grade)', 'target'), ('curricular units 1st sem (grade)', 'daytime/evening attendance'), ('curricular units 1st sem (grade)', 'previous qualification (grade)'), ('unemployment rate', 'displaced'), ('inflation rate', 'unemployment rate'), ('inflation rate', 'gdp'), ('gdp', 'unemployment rate'), ('gdp', 'tuition fees up to date'), ('target', 'tuition fees up to date'), ('target', 'scholarship holder')])
 modelo = BayesianNetwork(list(estimated_modelh.edges()))
 
-#nodos_fit = list(estimated_modelh.nodes())
+nodos_fit = list(estimated_modelh.nodes())
+nodos_fit.pop(1) # -----> Tuve que eliminar la variable (previous qualification (grade)) porque estaba entre los nodos pero no se encontraba dentro de las relaciones y salia un error
+print(nodos_fit)
 
-#Debo quitarle las columnas al train (df) que no fueron tomadas en cuenta por la estimación del grafo
-#df_fit = df[['daytime/evening attendance', 'previous qualification (grade)', 'displaced', 'tuition fees up to date', 'scholarship holder', 'curricular units 1st sem (evaluations)', 'curricular units 1st sem (grade)', 'unemployment rate', 'inflation rate', 'gdp', 'target']]
-df_fit = df[list(estimated_modelh.nodes())]
+df_fit = df[nodos_fit]
 
 from pgmpy.estimators import MaximumLikelihoodEstimator
-
 emv = MaximumLikelihoodEstimator(model=modelo, data=df_fit)
 modelo.fit(data=df_fit, estimator = MaximumLikelihoodEstimator) 
 
 from pgmpy.inference import VariableElimination
+
 #Modelo de inferencia
 infer = VariableElimination(modelo)
 
-test_fit = test[list(estimated_modelh.nodes())]
+test_fit = test[nodos_fit]
 
 pred = inferencia(modelo, test_fit)
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Metricas del modelo predictivo
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-m.metricas_modelo(test_fit, pred)
+m.metricas_modelo(test_fit, pred, "BIC")
+
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# SERIALIZACIÓN
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+import pickle
+
+filename='serializacion/modelo2-bic.pkl'
+with open(filename,'wb') as file:
+    pickle.dump(modelo, file)
+    file.close()
 

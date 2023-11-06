@@ -11,10 +11,8 @@ import metricas as m
 df = pd.read_csv("data_discreta.csv", header = 0, index_col=0, sep=";")
 df = df.astype('category')
 
-#print(df.groupby(by="target").agg({"target":"count"}))
-
 #Modelo con estructura inicial sin parámetros
-mod_fit_mv= BayesianNetwork([("curricular units 1st sem (grade)","target"),("course","target"), ("tuition fees up to date","target"), ("scholarship holder","target"), 
+mod_fit_mv = BayesianNetwork([("curricular units 1st sem (grade)","target"),("course","target"), ("tuition fees up to date","target"), ("scholarship holder","target"), 
                              ("daytime/evening attendance","course"), ("curricular units 1st sem (evaluations)","course"),("displaced","tuition fees up to date"),
                              ("unemployment rate","displaced"),("inflation rate","displaced"),("gdp","displaced"),("curricular units 1st sem (evaluations)","previous qualification (grade)")])
 
@@ -30,9 +28,6 @@ emv = MaximumLikelihoodEstimator(model=mod_fit_mv, data=train)
 #Parámetros obtenidos con la estumación de Máxima verosimilitud
 mod_fit_mv.fit(data=train, estimator = MaximumLikelihoodEstimator) 
 
-# for i in mod_fit_mv.nodes():
-#     print(mod_fit_mv.get_cpds(i)) 
-
 #Modelo de inferencia
 infer = VariableElimination(mod_fit_mv)
 
@@ -47,4 +42,27 @@ def prediccion_dash(ve):
 #Metricas del modelo predictivo
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-m.metricas_modelo(test, pred)
+m.metricas_modelo(test, pred, "ORIGINAL")
+
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Modelo con PUNTAJES
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+from pgmpy.utils import get_example_model
+from pgmpy.metrics import structure_score
+
+print("\n* MODELO ORIGINAL - PUNTJAE: BIC \n")
+print(structure_score(mod_fit_mv, train, scoring_method="bic"))
+
+print("\n* MODELO ORIGINAL - PUNTJAE: K2 \n")
+print(structure_score(mod_fit_mv, train, scoring_method="k2"))
+
+
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# SERIALIZACIÓN
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+import pickle
+
+filename='serializacion/modelo1-original.pkl'
+with open(filename,'wb') as file:
+    pickle.dump(mod_fit_mv, file)
+    file.close()
