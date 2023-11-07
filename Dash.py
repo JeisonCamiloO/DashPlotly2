@@ -25,7 +25,12 @@ file.close()
 
 
 consulta = """
-SELECT course
+SELECT CASE WHEN course IN (33,9119,9147,9991) THEN 'Ciencias Exactas'
+        WHEN course IN (171,9070,9670) THEN 'Diseno'
+        WHEN course IN (8014,9238,9254,9773,9853) THEN 'Ciencias Sociales'
+        WHEN course IN (9003,9130) THEN 'Ciencias Agrarias'
+        WHEN course IN (9085, 9500,9556) THEN 'Ciencias de la Salud'
+    END AS course
     , CASE WHEN daytimeevening_attendance = 1 THEN 'Yes' ELSE 'No' END AS attendance
     , CASE WHEN previous_qualification_grade < 116 THEN 'Low Failure'
         WHEN previous_qualification_grade <156 THEN 'Basic'
@@ -48,9 +53,20 @@ SELECT course
         WHEN curricular_units_1st_sem_grade < 16 THEN 'Satisfactory'
         WHEN curricular_units_1st_sem_grade <= 20 THEN 'Superior'
     END AS curricular_units_1st_sem_grade
-    , unemployment_rate
-    , inflation_rate
-    , gdp
+    , CASE WHEN unemployment_rate <9.4 THEN 'Low'
+        WHEN unemployment_rate <11.1 THEN 'Medium'
+        WHEN unemployment_rate <13.9 THEN 'High'
+        WHEN unemployment_rate <=17 THEN 'Superior'
+    END AS unemployment_rate
+    , CASE WHEN inflation_rate <1 THEN 'Low'
+        WHEN inflation_rate <3 THEN 'Medium'
+        WHEN inflation_rate <4 THEN 'High'
+    END AS inflation_rate
+    , CASE WHEN gdp <-2 THEN 'Very Low'
+        WHEN gdp <0 THEN 'Low'
+        WHEN gdp <1.79 THEN 'Medium'
+        WHEN gdp <=5 THEN 'High'
+    END AS gdp
     , target
 FROM ESTUDIANTE
 ;"""
@@ -94,7 +110,7 @@ def prediccion_dash(ve):
 
 def generate_heatmap (course, attendance, hm_click):
     x_axis = df_disc['target'].unique().tolist()
-    y_axis = df_disc['curricular_units_1st_sem_grade'].sort_values().unique().tolist()
+    y_axis = ["Failure", "Basic", "Low Failure", "Satisfactory", "Superior"]
     filtered_df = df_disc[
         (df_disc["course"].isin(course)) & (df_disc["attendance"].isin(attendance))
     ]
@@ -135,7 +151,6 @@ def generate_heatmap (course, attendance, hm_click):
         for ind_x, x_val in enumerate(x_axis):
             count_target = round(filtered_grade[filtered_grade["target"] == x_val]["target"].count()/total_students * 100,2)
             value = str(count_target)
-            # print(value)
             z[ind_y][ind_x] = value
 
             annotation_dict = dict(
@@ -242,7 +257,6 @@ def generate_heatmap_tuition_fees (course, attendance, hm_click, hm_tuition_clic
                 count_target = 0
 
             value = str(count_target)
-            # print(value)
             z[ind_y][ind_x] = value
             annotation_dict = dict(
                 showarrow=False,
@@ -309,7 +323,7 @@ def generate_control_card():
         children=[
             html.B("Select Courses"),
             dcc.Dropdown(
-                options=[{"label": valor, "value": clave} for clave, valor in course_dict.items()],
+                options=["Diseno", "Ciencias de la Salud", "Ciencias Agrarias", "Ciencias Sociales", "Ciencias Exactas"],
                 value=course_list[:], 
                 id='dropdown-course',
                 multi=True
@@ -319,7 +333,7 @@ def generate_control_card():
             dcc.Checklist(
                 options=df_disc.attendance.unique(),
                 inline = True,
-                value=["Evening", "Daytime"],
+                value=["Yes", "No"],
                 id='checklist-daytime'
             ),
             html.Br(),
@@ -395,7 +409,7 @@ def generate_prediction_card():
             dcc.Dropdown(
                 options=["Diseno", "Ciencias Sociales", "Ciencias Exactas", "Ciencias de la Salud", "Ciencias Agrarias"] , 
                 id='predict-course',
-                value = 'Diseno'
+                value = 'Ciencias Sociales'
                 # inline = False
             ),
             html.Br(),
@@ -411,7 +425,7 @@ def generate_prediction_card():
             dcc.Dropdown(
                 options=[ "Low Failure", "Basic", "Satisfactory", "Superior"], 
                 id='predict-qualification-grade',
-                value = 'Satisfactory'
+                value = 'Basic'
             ),
             html.Br(),
             html.B("Select displaced"),
@@ -435,21 +449,21 @@ def generate_prediction_card():
                 options=["Yes", "No"], 
                 id='predict-scholarship',
                 inline = True,
-                value = "Yes"
+                value = "No"
             ),
             html.Br(),
             html.B("Select evaluations in 1st semester"),
             dcc.Dropdown(
                 options=["Very Low", "Low", "Medium Low", "Medium High", "High", "Very High"], 
                 id='predict-evaluations',
-                value = 'Very Low'
+                value = 'Low'
             ),
             html.Br(),
             html.B("Select grade in 1st semester"),
             dcc.Dropdown(
                 options=["Failure", "Basic", "Low Failure", "Satisfactory", "Superior"], 
                 id='predict-grade-1st',
-                value = 'Failure'
+                value = 'Low Failure'
             ),
             html.Br(),
             html.B("Select Unemployment rate level"),
@@ -548,8 +562,6 @@ def update_output(course_value, daytime_value, hm_click, hm_tuition_click):
                 (filtered_df["target"] == hm_click["points"][0]["x"])  & (filtered_df["curricular_units_1st_sem_grade"] == hm_click["points"][0]["y"])
             ]
     
-    # print(filtered_df)
-    
     fig2 = px.histogram(filtered_hm, x="scholarship_holder", text_auto=True, category_orders=dict(scholarship_holder=["Yes","No"])) 
     fig2.update_layout(
         xaxis_title= None,
@@ -609,7 +621,6 @@ def update_output(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11):
         (df_disc['inflation_rate'] == v10) &
         (df_disc['gdp'] == v11)
     ]
-    
     fig2 = px.histogram(filtered_df, x="target", text_auto=True)
     fig2.update_layout(
         xaxis_title='Target',
