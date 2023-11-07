@@ -27,7 +27,7 @@ file.close()
 consulta = """
 SELECT course
     , CASE WHEN daytimeevening_attendance = 1 THEN 'Yes' ELSE 'No' END AS attendance
-    , CASE WHEN previous_qualification_grade < 116 THEN Low Failure'
+    , CASE WHEN previous_qualification_grade < 116 THEN 'Low Failure'
         WHEN previous_qualification_grade <156 THEN 'Basic'
         WHEN previous_qualification_grade <180 THEN 'Satisfactory'
         WHEN previous_qualification_grade <=200 THEN 'Superior'
