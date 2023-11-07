@@ -15,7 +15,6 @@ import pandas as pd
 import numpy as np
 import bd_conexion as bd
 
-# rutaj = "C:/Users/jgvm/OneDrive/Escritorio/Maestria/Primer Semestre (2023-2)/Analitica Computacional para la Toma de Decisiones/Proyecto/Proyecto-EDA/data.csv"
 consulta = """
 SELECT course
     , CASE WHEN daytimeevening_attendance = 1 THEN 'Daytime'ELSE 'Evening' END AS attendance
