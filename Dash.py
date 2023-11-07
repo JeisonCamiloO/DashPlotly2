@@ -18,7 +18,7 @@ import pickle
 from infer import prediccion_dash_infer
 
 # Read model from PKL file 
-filename='serializacion\modelo1-original.pkl'
+filename='serializacion/modelo1-original.pkl'
 file = open(filename, 'rb')
 modelo = pickle.load(file)
 file.close()
